@@ -262,6 +262,19 @@ const CustomEdge = ({
     const pathCount = data?.pathsData ? Object.keys(data.pathsData).length : 1;
     const hasMultiplePaths = pathCount > 1;
 
+    if (data?.isShadow) {
+        return (
+            <path
+                d={edgePath}
+                fill="none"
+                stroke="rgba(244, 63, 94, 0.5)"
+                strokeWidth={strokeWidth + 2}
+                transform="translate(0, 2)"
+                pointerEvents="none"
+            />
+        );
+    }
+
     return (
         <g
             onMouseEnter={() => setIsHovered(true)}
@@ -299,9 +312,9 @@ const CustomEdge = ({
                     stroke: `url(#gradient-${id})`,
                     opacity: 0.9,
                     transition: 'stroke-width 0.3s',
-                    filter: id.startsWith('e-gov-media_legacy-')
-                        ? 'drop-shadow(0px 1.5px 0.5px rgba(244, 63, 94, 0.8))'
-                        : (hasMultiplePaths ? 'drop-shadow(0px 1px 1px rgba(244, 63, 94, 0.7))' : 'none')
+                    filter: (hasMultiplePaths && !id.startsWith('e-gov-media_legacy-'))
+                        ? 'drop-shadow(0px 1px 1px rgba(244, 63, 94, 0.7))'
+                        : 'none'
                 }}
                 interactionWidth={6}
             />
@@ -483,6 +496,29 @@ function App() {
     const [usersList, setUsersList] = useState<{ email: string, name: string }[]>([]);
     const [uniqueNodes, setUniqueNodes] = useState<string[]>([]);
     const [allPathways, setAllPathways] = useState<Record<string, string[]>>({}); // source-target -> pathways
+
+    const displayEdges = useMemo(() => {
+        const shadows = edges
+            .filter((e) => e.id.startsWith('e-gov-media_legacy-'))
+            .map((e) => ({
+                ...e,
+                id: `${e.id}-shadow`,
+                data: { ...e.data, isShadow: true },
+                type: 'custom',
+                selectable: false,
+                focusable: false,
+                zIndex: -20 // Ensure shadows are at the absolute bottom
+            }));
+
+        const mappedEdges = edges.map((e) => {
+            if (e.id.startsWith('e-gov-media_legacy-')) {
+                return { ...e, zIndex: -10 }; // Move the Gov-to-Media main lines behind others
+            }
+            return { ...e, zIndex: 0 }; // Keep other lines in front
+        });
+
+        return [...shadows, ...mappedEdges];
+    }, [edges]);
 
     const [formData, setFormData] = useState({
         sourceNode: '',
@@ -925,7 +961,7 @@ function App() {
                 <DiagramContext.Provider value={{ isEditingEdges, updateEdgeControlPoint, updateEdgeSplitPoint, setActiveEdgeData, activeEdgeId, setActiveEdgeId }}>
                     <ReactFlow
                         nodes={nodes}
-                        edges={edges}
+                        edges={displayEdges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
