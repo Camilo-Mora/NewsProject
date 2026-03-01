@@ -301,7 +301,7 @@ const CustomEdge = ({
                     transition: 'stroke-width 0.3s',
                     filter: hasMultiplePaths ? 'drop-shadow(0px 1px 1px rgba(244, 63, 94, 0.7))' : 'none'
                 }}
-                interactionWidth={20}
+                interactionWidth={6}
             />
             {
                 (isHovered && data?.papers && !isEditingEdges) && (
@@ -315,8 +315,8 @@ const CustomEdge = ({
                             }}
                             style={{
                                 position: 'absolute',
-                                transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                                pointerEvents: 'all',
+                                transform: `translate(-50%, -100%) translate(${labelX}px,${labelY - 35}px)`,
+                                pointerEvents: 'none',
                                 background: 'white',
                                 padding: '4px 10px',
                                 borderRadius: '6px',
@@ -442,16 +442,16 @@ export const GROUP_PADDING = 5;
 
 // Saved edge waypoints from user layout export
 const SAVED_EDGE_WAYPOINTS: Record<string, { splitX?: number; mergeX?: number; controlPoint?: { x: number; y: number } }> = {
-    'e-media_legacy-people-Slant': { splitX: 494.04, mergeX: 553.35 },
+    'e-media_legacy-people-Slant': { splitX: 590.5056340297841, mergeX: 629.2620432107374 },
     'e-gov-media_legacy-War_Diffusion': { splitX: 882.68, mergeX: 747.03 },
     'e-people-gov-Unspecified_Strategy': { splitX: 846.39, mergeX: 906.59 },
-    'e-media_legacy-people-Unspecified_Strategy': { splitX: 480.76, mergeX: 538.30 },
-    'e-people-media_legacy-Unspecified_Strategy': { splitX: 633.03, mergeX: 516.17 },
+    'e-media_legacy-people-Unspecified_Strategy': { splitX: 575.3070421941162, mergeX: 611.7836625997193 },
+    'e-people-media_legacy-Unspecified_Strategy': { splitX: 590.5056340297841, mergeX: 516.17 },
     'e-gov-media_legacy-Dead_Cat': { splitX: 938.46, mergeX: 815.40 },
     'e-media_social-people-Unspecified_Strategy': { splitX: 582.57, mergeX: 625.95 },
     'e-gov-media_legacy-Flooding_Zone': { splitX: 914.72 },
     'e-pb_foreign-media_social-Unspecified_Strategy': { splitX: 633.03, mergeX: 509.09 },
-    'e-gov-people-Unilateral_actions': { splitX: 919.42, mergeX: 805.70 },
+    'e-gov-people-Unilateral_actions': { splitX: 919.42, mergeX: 792.4303983521418 },
     'e-gov-media_social-Unspecified_Strategy': { splitX: 933.84, mergeX: 816.54 },
     'e-media_social-gov-Unspecified_Strategy': { splitX: 828.68, mergeX: 914.55 },
     'e-media_legacy-gov-Unspecified_Strategy': { splitX: 747.23, mergeX: 919.86 },
@@ -568,12 +568,12 @@ function App() {
                 // 2. Absolute X lookup per node (for grouped nodes, add parent offset)
                 //    This lets us pick the nearest/shortest side automatically.
                 const nodeAbsX: Record<string, number> = {
-                    powerbroker_group: 634, pb_domestic: 634 + GROUP_PADDING, pb_foreign: 634 + GROUP_PADDING,
+                    powerbroker_group: 633.53, pb_domestic: 633.53 + GROUP_PADDING, pb_foreign: 633.53 + GROUP_PADDING,
                     media_group: 340, media_legacy: 340 + GROUP_PADDING, media_social: 340 + GROUP_PADDING,
-                    people: 650, gov: 955,
+                    people: 649.72, gov: 954.79,
                 };
                 const nodeAbsY: Record<string, number> = {
-                    powerbroker_group: 356, pb_domestic: 356 + GROUP_PADDING, pb_foreign: 356 + 41,
+                    powerbroker_group: 356.19, pb_domestic: 356.19 + GROUP_PADDING, pb_foreign: 356.19 + 41,
                     media_group: 220, media_legacy: 220 + GROUP_PADDING, media_social: 220 + 88,
                     people: 265, gov: 265,
                 };
@@ -631,11 +631,11 @@ function App() {
                         const yDiff = (nodeAbsY[a.target] ?? 200) - (nodeAbsY[b.target] ?? 200);
                         if (yDiff !== 0) return yDiff;
 
-                        // If same Y, sort by distance ascending (closer targets get top handles)
+                        // If same Y, sort by distance descending (further targets get top handles)
                         const srcX = nodeAbsX[a.source] ?? 500;
                         const distA = Math.abs((nodeAbsX[a.target] ?? 500) - srcX);
                         const distB = Math.abs((nodeAbsX[b.target] ?? 500) - srcX);
-                        if (distA !== distB) return distA - distB;
+                        if (distA !== distB) return distB - distA;
 
                         // For same-target lines, sort by pathway name in edge ID to ensure parallel paths
                         return a.id.localeCompare(b.id);
