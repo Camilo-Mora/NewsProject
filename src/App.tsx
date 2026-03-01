@@ -299,7 +299,9 @@ const CustomEdge = ({
                     stroke: `url(#gradient-${id})`,
                     opacity: 0.9,
                     transition: 'stroke-width 0.3s',
-                    filter: hasMultiplePaths ? 'drop-shadow(0px 1px 1px rgba(244, 63, 94, 0.7))' : 'none'
+                    filter: id.startsWith('e-gov-media_legacy-')
+                        ? 'drop-shadow(0px 1.5px 0.5px rgba(244, 63, 94, 0.8))'
+                        : (hasMultiplePaths ? 'drop-shadow(0px 1px 1px rgba(244, 63, 94, 0.7))' : 'none')
                 }}
                 interactionWidth={6}
             />
@@ -443,19 +445,19 @@ export const GROUP_PADDING = 5;
 // Saved edge waypoints from user layout export
 const SAVED_EDGE_WAYPOINTS: Record<string, { splitX?: number; mergeX?: number; controlPoint?: { x: number; y: number } }> = {
     'e-media_legacy-people-Slant': { splitX: 590.5056340297841, mergeX: 629.2620432107374 },
-    'e-gov-media_legacy-War_Diffusion': { splitX: 882.68, mergeX: 747.03 },
-    'e-people-gov-Unspecified_Strategy': { splitX: 846.39, mergeX: 906.59 },
+    'e-gov-media_legacy-War_Diffusion': { splitX: 897.7321686746988, mergeX: 824.2531686746987 },
+    'e-people-gov-Unspecified_Strategy': { splitX: 793.2680481927711, mergeX: 820.7120120481927 },
+    'e-media_social-gov-Unspecified_Strategy': { splitX: 763.1682168674698, mergeX: 826.0237469879518 },
+    'e-media_legacy-gov-Unspecified_Strategy': { splitX: 758.7417710843373, mergeX: 829.5649036144578 },
+    'e-gov-media_social-Unspecified_Strategy': { splitX: 938.455469879518, mergeX: 871.1734939759036 },
     'e-media_legacy-people-Unspecified_Strategy': { splitX: 575.3070421941162, mergeX: 611.7836625997193 },
     'e-people-media_legacy-Unspecified_Strategy': { splitX: 590.5056340297841, mergeX: 516.17 },
-    'e-gov-media_legacy-Dead_Cat': { splitX: 938.46, mergeX: 815.40 },
-    'e-media_social-people-Unspecified_Strategy': { splitX: 582.57, mergeX: 625.95 },
-    'e-gov-media_legacy-Flooding_Zone': { splitX: 914.72 },
-    'e-pb_foreign-media_social-Unspecified_Strategy': { splitX: 633.03, mergeX: 509.09 },
+    'e-gov-media_legacy-Dead_Cat': { splitX: 942.8819156626505, mergeX: 865.8617590361446 },
+    'e-media_social-people-Unspecified_Strategy': { splitX: 586.1103855421686, mergeX: 633.0307108433734 },
+    'e-pb_domestic-media_legacy-Unspecified_Strategy': { splitX: 625.9483975903614, mergeX: 496.7 },
     'e-gov-people-Unilateral_actions': { splitX: 919.42, mergeX: 792.4303983521418 },
-    'e-gov-media_social-Unspecified_Strategy': { splitX: 933.84, mergeX: 816.54 },
-    'e-media_social-gov-Unspecified_Strategy': { splitX: 828.68, mergeX: 914.55 },
-    'e-media_legacy-gov-Unspecified_Strategy': { splitX: 747.23, mergeX: 919.86 },
-    'e-pb_domestic-media_legacy-Unspecified_Strategy': { splitX: 621.52, mergeX: 496.70 },
+    'e-gov-media_legacy-Flooding_Zone': { splitX: 918.9791084337348, mergeX: 846.3853975903614 },
+    'e-pb_foreign-media_social-Unspecified_Strategy': { splitX: 631.2601325301205, mergeX: 529.4518795180722 },
 };
 
 const baseNodesTemplate: Node[] = [
