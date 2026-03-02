@@ -121,6 +121,10 @@ body {
     font-weight: 600 !important;
     font-size: 0.85rem !important;
     min-width: 120px;
+    height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -131,6 +135,7 @@ body {
     /* Lighter blue for inner PB nodes */
     min-width: unset !important;
     width: 80px !important;
+    height: 35px !important;
     padding: 6px 10px !important;
     font-size: 0.75rem !important;
 }

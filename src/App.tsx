@@ -44,6 +44,9 @@ const GroupNode = ({ data }: any) => {
 };
 
 const BoxNode = ({ data }: any) => {
+    const context = useContext(DiagramContext);
+    const globalScale = context?.globalScale || 1;
+
     const renderHandlesGroup = (
         position: Position,
         items: { type: 'target' | 'source', weight: number, idPrefix: string, index: number }[]
@@ -52,12 +55,21 @@ const BoxNode = ({ data }: any) => {
 
         const isVertical = position === Position.Top || position === Position.Bottom;
 
-        const totalSpan = items.reduce((sum, item) => sum + (item.weight < 0 ? Math.abs(item.weight) : Math.max(3, item.weight * 0.8)), 0);
+        // Calculate total span using scaled thickness
+        const totalSpan = items.reduce((sum, item) => {
+            if (item.weight < 0) return sum + Math.abs(item.weight) * globalScale;
+            const thickness = Math.max(2, (item.weight * 0.8) * globalScale);
+            return sum + thickness;
+        }, 0);
+
         let currentOffset = -totalSpan / 2;
 
         return items.map((item) => {
             const isGap = item.weight < 0;
-            const thickness = isGap ? Math.abs(item.weight) : Math.max(3, item.weight * 0.8);
+            const thickness = isGap
+                ? Math.abs(item.weight) * globalScale
+                : Math.max(2, (item.weight * 0.8) * globalScale);
+
             const offset = currentOffset + thickness / 2;
             currentOffset += thickness;
 
@@ -167,6 +179,7 @@ const DiagramContext = createContext<{
     setActiveEdgeData?: (data: any) => void;
     activeEdgeId?: string | null;
     setActiveEdgeId?: (id: string | null) => void;
+    globalScale: number;
 } | null>(null);
 
 const CustomEdge = ({
@@ -258,7 +271,8 @@ const CustomEdge = ({
     }
 
     const papers = data?.papers || 1;
-    const strokeWidth = Math.max(3, papers * 0.8);
+    const globalScale = diagramContext?.globalScale || 1;
+    const strokeWidth = Math.max(2, (papers * 0.8) * globalScale);
     const pathCount = data?.pathsData ? Object.keys(data.pathsData).length : 1;
     const hasMultiplePaths = pathCount > 1;
 
@@ -460,8 +474,8 @@ const SAVED_EDGE_WAYPOINTS: Record<string, { splitX?: number; mergeX?: number; c
     'e-media_legacy-people-Slant': { splitX: 590.5056340297841, mergeX: 629.2620432107374 },
     'e-gov-media_legacy-War_Diffusion': { splitX: 897.7321686746988, mergeX: 824.2531686746987 },
     'e-people-gov-Unspecified_Strategy': { splitX: 793.2680481927711, mergeX: 820.7120120481927 },
-    'e-media_social-gov-Unspecified_Strategy': { splitX: 763.1682168674698, mergeX: 826.0237469879518 },
-    'e-media_legacy-gov-Unspecified_Strategy': { splitX: 758.7417710843373, mergeX: 829.5649036144578 },
+    'e-media_social-gov-Unspecified_Strategy': { splitX: 816.2855662650602, mergeX: 885.3381204819277 },
+    'e-media_legacy-gov-Unspecified_Strategy': { splitX: 786.185734939759, mergeX: 859.664734939759 },
     'e-gov-media_social-Unspecified_Strategy': { splitX: 938.455469879518, mergeX: 871.1734939759036 },
     'e-media_legacy-people-Unspecified_Strategy': { splitX: 575.3070421941162, mergeX: 611.7836625997193 },
     'e-people-media_legacy-Unspecified_Strategy': { splitX: 590.5056340297841, mergeX: 516.17 },
@@ -471,17 +485,19 @@ const SAVED_EDGE_WAYPOINTS: Record<string, { splitX?: number; mergeX?: number; c
     'e-gov-people-Unilateral_actions': { splitX: 919.42, mergeX: 792.4303983521418 },
     'e-gov-media_legacy-Flooding_Zone': { splitX: 918.9791084337348, mergeX: 846.3853975903614 },
     'e-pb_foreign-media_social-Unspecified_Strategy': { splitX: 631.2601325301205, mergeX: 529.4518795180722 },
+    'e-media_social-gov-Technofeudalism': { splitX: 794.1533373493976, mergeX: 860.5500240963855 },
+    'e-media_legacy-gov-CNN_effect': { mergeX: 872.9440722891566 },
 };
 
 const baseNodesTemplate: Node[] = [
-    { id: 'powerbroker_group', type: 'group', data: { label: 'POWERBROKERS', small: true }, position: { x: 633.53, y: 356.19 }, style: { width: 90, height: 77 }, zIndex: 0 },
+    { id: 'powerbroker_group', type: 'group', data: { label: 'POWERBROKERS', small: true }, position: { x: 649.4652048192772, y: 384.51925301204824 }, style: { width: 90, height: 86 }, zIndex: 0 },
     { id: 'pb_domestic', type: 'box', data: { label: 'Domestic', tWeights: [], slWeights: [], sWeights: [], lighter: true }, position: { x: GROUP_PADDING, y: GROUP_PADDING }, parentId: 'powerbroker_group', zIndex: 10 },
-    { id: 'pb_foreign', type: 'box', data: { label: 'Foreign', tWeights: [], slWeights: [], sWeights: [], lighter: true }, position: { x: GROUP_PADDING, y: 41 }, parentId: 'powerbroker_group', zIndex: 10 },
-    { id: 'media_group', type: 'group', data: { label: 'MEDIA' }, position: { x: 340, y: 220 }, style: { width: 130, height: 134 }, zIndex: 0 },
+    { id: 'pb_foreign', type: 'box', data: { label: 'Foreign', tWeights: [], slWeights: [], sWeights: [], lighter: true }, position: { x: GROUP_PADDING, y: 46 }, parentId: 'powerbroker_group', zIndex: 10 },
+    { id: 'media_group', type: 'group', data: { label: 'MEDIA' }, position: { x: 340, y: 220 }, style: { width: 130, height: 166.24693975903614 }, zIndex: 0 },
     { id: 'media_legacy', type: 'box', data: { label: 'Legacy', tWeights: [], sWeights: [], trWeights: [], reverseHandleOrder: true }, position: { x: GROUP_PADDING, y: GROUP_PADDING }, parentId: 'media_group', zIndex: 10 },
-    { id: 'media_social', type: 'box', data: { label: 'Social', tWeights: [], sWeights: [], trWeights: [] }, position: { x: GROUP_PADDING, y: 88 }, parentId: 'media_group', zIndex: 10 },
-    { id: 'people', type: 'box', data: { label: 'People', tWeights: [], sWeights: [], trWeights: [], reverseHandleOrder: true }, position: { x: 649.72, y: 265 }, zIndex: 10 },
-    { id: 'gov', type: 'box', data: { label: 'Government', tWeights: [], sWeights: [], slWeights: [] }, position: { x: 954.79, y: 265 }, zIndex: 10 },
+    { id: 'media_social', type: 'box', data: { label: 'Social', tWeights: [], sWeights: [], trWeights: [] }, position: { x: GROUP_PADDING, y: 109.24693975903614 }, parentId: 'media_group', zIndex: 10 },
+    { id: 'people', type: 'box', data: { label: 'People', tWeights: [], sWeights: [], trWeights: [], reverseHandleOrder: true }, position: { x: 649.72, y: 277.1234698795181 }, zIndex: 10 },
+    { id: 'gov', type: 'box', data: { label: 'Government', tWeights: [], sWeights: [], slWeights: [] }, position: { x: 954.79, y: 277.1234698795181 }, zIndex: 10 },
 ];
 
 function App() {
@@ -496,6 +512,7 @@ function App() {
     const [usersList, setUsersList] = useState<{ email: string, name: string }[]>([]);
     const [uniqueNodes, setUniqueNodes] = useState<string[]>([]);
     const [allPathways, setAllPathways] = useState<Record<string, string[]>>({}); // source-target -> pathways
+    const [globalScale, setGlobalScale] = useState(1);
 
     const displayEdges = useMemo(() => {
         const shadows = edges
@@ -606,14 +623,14 @@ function App() {
                 // 2. Absolute X lookup per node (for grouped nodes, add parent offset)
                 //    This lets us pick the nearest/shortest side automatically.
                 const nodeAbsX: Record<string, number> = {
-                    powerbroker_group: 633.53, pb_domestic: 633.53 + GROUP_PADDING, pb_foreign: 633.53 + GROUP_PADDING,
+                    powerbroker_group: 649.4652048192772, pb_domestic: 649.4652048192772 + GROUP_PADDING, pb_foreign: 649.4652048192772 + GROUP_PADDING,
                     media_group: 340, media_legacy: 340 + GROUP_PADDING, media_social: 340 + GROUP_PADDING,
                     people: 649.72, gov: 954.79,
                 };
                 const nodeAbsY: Record<string, number> = {
-                    powerbroker_group: 356.19, pb_domestic: 356.19 + GROUP_PADDING, pb_foreign: 356.19 + 41,
-                    media_group: 220, media_legacy: 220 + GROUP_PADDING, media_social: 220 + 88,
-                    people: 265, gov: 265,
+                    powerbroker_group: 384.51925301204824, pb_domestic: 384.51925301204824 + GROUP_PADDING, pb_foreign: 384.51925301204824 + 46,
+                    media_group: 220, media_legacy: 220 + GROUP_PADDING, media_social: 220 + 109.24693975903614,
+                    people: 277.1234698795181, gov: 277.1234698795181,
                 };
 
                 const edgeList = Object.values(groupedEdges);
@@ -706,6 +723,17 @@ function App() {
                 Object.entries(edgesByTargetSide).forEach(([key, edges]) => {
                     weightByNodeSide[key] = edges.map((e: any) => e.data.papers);
                 });
+
+                // 6. Calculate Global Scale
+                // We want to fit the largest "natural pile" into 44px (usable area of 52px height)
+                let maxNaturalHeight = 0;
+                Object.values(weightByNodeSide).forEach((weights) => {
+                    const naturalHeight = weights.reduce((sum, w) => sum + Math.max(2, w * 0.8), 0) + 5; // weights sum + gap
+                    if (naturalHeight > maxNaturalHeight) maxNaturalHeight = naturalHeight;
+                });
+
+                const calculatedScale = maxNaturalHeight > 44 ? 44 / maxNaturalHeight : 1.0;
+                setGlobalScale(calculatedScale);
 
                 parsedNodes.forEach((node: any) => {
                     node.data.sWeights = weightByNodeSide[`${node.id}_s`] || [];
@@ -886,17 +914,17 @@ function App() {
                     }
                 }
             };
-            // Box heights: Legacy/Social ~41px, Domestic/Foreign ~31px
-            handleResizeGroup('media_legacy', 'media_social', 'media_group', 130, Math.round(41 + GROUP_PADDING));
-            handleResizeGroup('pb_domestic', 'pb_foreign', 'powerbroker_group', 90, Math.round(31 + GROUP_PADDING));
+            // Box heights: All are now 52px
+            handleResizeGroup('media_legacy', 'media_social', 'media_group', 130, Math.round(52 + GROUP_PADDING));
+            handleResizeGroup('pb_domestic', 'pb_foreign', 'powerbroker_group', 90, Math.round(35 + GROUP_PADDING));
 
             // Dynamically center People and Government Y on the Media group's vertical center
             const mediaGroup = appliedNodes.find((n) => n.id === 'media_group');
             if (mediaGroup) {
                 const mediaHeight = ((mediaGroup as any).style?.height as number) || 180;
                 const mediaCenterY = mediaGroup.position.y + mediaHeight / 2;
-                // Approximate box height for People/Gov nodes is ~44px, center them on mediaCenterY
-                const nodeHalfHeight = 22;
+                // Node height is now 52px, so half height is 26
+                const nodeHalfHeight = 26;
                 const targetY = mediaCenterY - nodeHalfHeight;
 
                 ['people', 'gov'].forEach((nodeId) => {
@@ -958,7 +986,7 @@ function App() {
                 </motion.h1>
             </header>
             <div className="diagram-container" style={{ position: 'relative' }}>
-                <DiagramContext.Provider value={{ isEditingEdges, updateEdgeControlPoint, updateEdgeSplitPoint, setActiveEdgeData, activeEdgeId, setActiveEdgeId }}>
+                <DiagramContext.Provider value={{ isEditingEdges, updateEdgeControlPoint, updateEdgeSplitPoint, setActiveEdgeData, activeEdgeId, setActiveEdgeId, globalScale }}>
                     <ReactFlow
                         nodes={nodes}
                         edges={displayEdges}
