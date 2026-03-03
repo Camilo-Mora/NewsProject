@@ -556,6 +556,25 @@ function App() {
     const [showNewSourceInput, setShowNewSourceInput] = useState(false);
     const [showNewTargetInput, setShowNewTargetInput] = useState(false);
     const [showNewPathInput, setShowNewPathInput] = useState(false);
+    const [savedDriveFileUrl, setSavedDriveFileUrl] = useState<string | null>(null);
+    const [isDuplicateMode, setIsDuplicateMode] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    const fullReset = () => {
+        setIsAddingRecord(false);
+        setShowSuccessModal(false);
+        setIsDuplicateMode(false);
+        setSavedDriveFileUrl(null);
+        setFormData({
+            sourceNode: '', targetNode: '', user: '', author: '', journal: '',
+            year: '', relevance: 'Low', pathway: '', blurb: '',
+            newSourceNode: '', newTargetNode: '', newPathName: ''
+        });
+        setFile(null);
+        setShowNewSourceInput(false);
+        setShowNewTargetInput(false);
+        setShowNewPathInput(false);
+    };
 
     // Dynamic Google Sheets fetching
     useEffect(() => {
@@ -1153,6 +1172,101 @@ function App() {
                         </motion.div>
                     )}
                 </AnimatePresence>
+                {/* Success Modal */}
+                <AnimatePresence>
+                    {showSuccessModal && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{
+                                position: 'fixed',
+                                top: 0, left: 0, right: 0, bottom: 0,
+                                backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                                backdropFilter: 'blur(12px)',
+                                zIndex: 20000,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.85, y: 30 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.85, y: 30 }}
+                                style={{
+                                    background: '#1e293b',
+                                    padding: '44px 40px',
+                                    borderRadius: '24px',
+                                    width: '440px',
+                                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
+                                    color: 'white',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✅</div>
+                                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 10px 0', color: '#f8fafc' }}>Entry Saved!</h2>
+                                <p style={{ color: '#94a3b8', fontSize: '0.95rem', margin: '0 0 32px 0', lineHeight: 1.6 }}>
+                                    The record was sent to the database successfully.
+                                    It may take a minute to appear in the diagram.
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <button
+                                        onClick={() => {
+                                            // + Add another record from this paper
+                                            setShowSuccessModal(false);
+                                            setIsDuplicateMode(true);
+                                            // Clear pathway-specific fields AND source/target nodes
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                sourceNode: '',
+                                                targetNode: '',
+                                                newSourceNode: '',
+                                                newTargetNode: '',
+                                                relevance: prev.relevance,
+                                                pathway: '',
+                                                blurb: '',
+                                                newPathName: ''
+                                            }));
+                                            setShowNewSourceInput(false);
+                                            setShowNewTargetInput(false);
+                                            setShowNewPathInput(false);
+                                        }}
+                                        style={{
+                                            padding: '14px',
+                                            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                            fontWeight: 700,
+                                            fontSize: '0.95rem',
+                                            boxShadow: '0 8px 15px -3px rgba(59,130,246,0.4)'
+                                        }}
+                                    >
+                                        + Add another record from this paper
+                                    </button>
+                                    <button
+                                        onClick={fullReset}
+                                        style={{
+                                            padding: '14px',
+                                            background: 'transparent',
+                                            color: '#94a3b8',
+                                            border: '1px solid #334155',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                            fontWeight: 700,
+                                            fontSize: '0.95rem'
+                                        }}
+                                    >
+                                        Done
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* Add New Record Modal */}
                 <AnimatePresence>
                     {isAddingRecord && (
@@ -1170,7 +1284,7 @@ function App() {
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}
-                            onClick={() => setIsAddingRecord(false)}
+                            onClick={fullReset}
                         >
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -1188,10 +1302,18 @@ function App() {
                                     color: 'white'
                                 }}
                             >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDuplicateMode ? '12px' : '32px' }}>
                                     <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>Add Research Record</h2>
-                                    <button onClick={() => setIsAddingRecord(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: '#94a3b8', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
+                                    <button onClick={fullReset} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: '#94a3b8', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
                                 </div>
+                                {isDuplicateMode && (
+                                    <div style={{ marginBottom: '24px', background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.4)', borderRadius: '10px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ fontSize: '1.2rem' }}>📎</span>
+                                        <span style={{ fontSize: '0.82rem', color: '#93c5fd', lineHeight: 1.4 }}>
+                                            <strong style={{ color: '#60a5fa' }}>Duplicate mode</strong> — The existing PDF will be reused. Fill in the new pathway details below.
+                                        </span>
+                                    </div>
+                                )}
 
                                 <form onSubmit={async (e) => {
                                     e.preventDefault();
@@ -1201,51 +1323,85 @@ function App() {
                                     }
                                     setIsSubmitting(true);
                                     try {
-                                        let fileData = "";
-                                        let mimeType = "";
-                                        let filename = "";
+                                        let payload: any;
 
-                                        if (file) {
-                                            fileData = await new Promise((resolve) => {
-                                                const reader = new FileReader();
-                                                reader.onload = () => resolve((reader.result as string).split(',')[1]);
-                                                reader.readAsDataURL(file);
-                                            });
-                                            mimeType = file.type;
-                                            filename = file.name;
+                                        if (isDuplicateMode && savedDriveFileUrl) {
+                                            // Duplicate mode: reuse existing Drive URL, no file upload
+                                            payload = {
+                                                action: "addPaper",
+                                                startNode: showNewSourceInput ? formData.newSourceNode : formData.sourceNode,
+                                                endNode: showNewTargetInput ? formData.newTargetNode : formData.targetNode,
+                                                user: formData.user,
+                                                author: formData.author,
+                                                journal: formData.journal,
+                                                year: formData.year,
+                                                relevance: formData.relevance,
+                                                pathway: showNewPathInput ? formData.newPathName : formData.pathway,
+                                                blurb: formData.blurb,
+                                                driveFileUrl: savedDriveFileUrl,
+                                                fileData: "",
+                                                mimeType: "",
+                                                filename: ""
+                                            };
+                                        } else {
+                                            // First submission: upload PDF if provided
+                                            let fileData = "";
+                                            let mimeType = "";
+                                            let filename = "";
+                                            if (file) {
+                                                fileData = await new Promise((resolve) => {
+                                                    const reader = new FileReader();
+                                                    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+                                                    reader.readAsDataURL(file);
+                                                });
+                                                mimeType = file.type;
+                                                filename = file.name;
+                                            }
+                                            payload = {
+                                                action: "addPaper",
+                                                startNode: showNewSourceInput ? formData.newSourceNode : formData.sourceNode,
+                                                endNode: showNewTargetInput ? formData.newTargetNode : formData.targetNode,
+                                                user: formData.user,
+                                                author: formData.author,
+                                                journal: formData.journal,
+                                                year: formData.year,
+                                                relevance: formData.relevance,
+                                                pathway: showNewPathInput ? formData.newPathName : formData.pathway,
+                                                blurb: formData.blurb,
+                                                fileData,
+                                                mimeType,
+                                                filename
+                                            };
                                         }
 
-                                        const payload = {
-                                            action: "addPaper",
-                                            startNode: showNewSourceInput ? formData.newSourceNode : formData.sourceNode,
-                                            endNode: showNewTargetInput ? formData.newTargetNode : formData.targetNode,
-                                            user: formData.user,
-                                            author: formData.author,
-                                            journal: formData.journal,
-                                            year: formData.year,
-                                            relevance: formData.relevance,
-                                            pathway: showNewPathInput ? formData.newPathName : formData.pathway,
-                                            blurb: formData.blurb,
-                                            fileData,
-                                            mimeType,
-                                            filename
-                                        };
+                                        // Because Apps Script requires no-cors, we cannot read the response body.
+                                        // We send and optimistically trust success, then store the Drive URL
+                                        // if the script echoes it back (requires CORS-enabled endpoint).
+                                        // For now we POST and proceed optimistically.
+                                        let returnedDriveUrl: string | null = null;
+                                        try {
+                                            const res = await fetch(APPS_SCRIPT_URL, {
+                                                method: 'POST',
+                                                mode: 'no-cors',
+                                                body: JSON.stringify(payload)
+                                            });
+                                            // no-cors means res.type === 'opaque'; we can't read the body.
+                                            // If the script was updated to allow CORS, try to read:
+                                            if (res.type !== 'opaque') {
+                                                const json = await res.json().catch(() => null);
+                                                if (json?.driveFileUrl) returnedDriveUrl = json.driveFileUrl;
+                                                else if (json?.fileUrl) returnedDriveUrl = json.fileUrl;
+                                            }
+                                        } catch (_) { /* swallow network errors */ }
 
-                                        await fetch(APPS_SCRIPT_URL, {
-                                            method: 'POST',
-                                            mode: 'no-cors', // Apps Script requires no-cors sometimes or handled via redirect
-                                            body: JSON.stringify(payload)
-                                        });
+                                        // Store the Drive URL for potential duplicate use
+                                        if (!isDuplicateMode && returnedDriveUrl) {
+                                            setSavedDriveFileUrl(returnedDriveUrl);
+                                        }
 
-                                        alert("Record sent to database! It may take a minute to appear in the diagram.");
-                                        setIsAddingRecord(false);
-                                        // Reset form
-                                        setFormData({
-                                            sourceNode: '', targetNode: '', user: '', author: '', journal: '',
-                                            year: '', relevance: 'Low', pathway: '', blurb: '',
-                                            newSourceNode: '', newTargetNode: '', newPathName: ''
-                                        });
-                                        setFile(null);
+                                        // Show success modal
+                                        setShowSuccessModal(true);
+
                                     } catch (err) {
                                         console.error(err);
                                         alert("Error submitting record. Check console.");
@@ -1266,6 +1422,60 @@ function App() {
                                             {usersList.map(u => <option key={u.email} value={u.email}>{u.name}</option>)}
                                         </select>
                                     </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Author(s)</label>
+                                        <input type="text" value={formData.author} onChange={(e) => setFormData({ ...formData, author: e.target.value })} placeholder="e.g. Smith, J. & Doe, A." style={{ background: '#0f172a', border: '1px solid #334155', height: '44px', borderRadius: '8px', color: 'white', padding: '0 12px' }} />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '16px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Journal / Source</label>
+                                            <input type="text" value={formData.journal} onChange={(e) => setFormData({ ...formData, journal: e.target.value })} placeholder="e.g. Nature, Science" style={{ background: '#0f172a', border: '1px solid #334155', height: '44px', borderRadius: '8px', color: 'white', padding: '0 12px' }} />
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Year</label>
+                                            <input type="text" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} placeholder="2024" style={{ background: '#0f172a', border: '1px solid #334155', height: '44px', borderRadius: '8px', color: 'white', padding: '0 12px' }} />
+                                        </div>
+                                    </div>
+
+                                    {isDuplicateMode ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>PDF File</label>
+                                            <div style={{ border: '2px dashed #1e3a5f', borderRadius: '12px', padding: '20px', textAlign: 'center', background: 'rgba(30,58,95,0.3)' }}>
+                                                <div style={{ color: '#60a5fa', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem' }}>
+                                                    <FileText size={18} /> Existing PDF will be reused (no re-upload needed)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>PDF File (Optional)</label>
+                                            <div
+                                                onClick={() => document.getElementById('file-upload')?.click()}
+                                                style={{
+                                                    border: '2px dashed #334155',
+                                                    borderRadius: '12px',
+                                                    padding: '20px',
+                                                    textAlign: 'center',
+                                                    cursor: 'pointer',
+                                                    background: file ? '#0f172a' : 'transparent',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                <input id="file-upload" type="file" accept="application/pdf" style={{ display: 'none' }} onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                                                {file ? (
+                                                    <div style={{ color: '#60a5fa', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                        <FileText size={20} /> {file.name}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                        <Upload size={20} /> Click to choose a PDF
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1330,22 +1540,6 @@ function App() {
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Author(s)</label>
-                                        <input type="text" value={formData.author} onChange={(e) => setFormData({ ...formData, author: e.target.value })} placeholder="e.g. Smith, J. & Doe, A." style={{ background: '#0f172a', border: '1px solid #334155', height: '44px', borderRadius: '8px', color: 'white', padding: '0 12px' }} />
-                                    </div>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '16px' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Journal / Source</label>
-                                            <input type="text" value={formData.journal} onChange={(e) => setFormData({ ...formData, journal: e.target.value })} placeholder="e.g. Nature, Science" style={{ background: '#0f172a', border: '1px solid #334155', height: '44px', borderRadius: '8px', color: 'white', padding: '0 12px' }} />
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Year</label>
-                                            <input type="text" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} placeholder="2024" style={{ background: '#0f172a', border: '1px solid #334155', height: '44px', borderRadius: '8px', color: 'white', padding: '0 12px' }} />
-                                        </div>
-                                    </div>
-
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Relevance</label>
@@ -1400,37 +1594,10 @@ function App() {
                                         <textarea value={formData.blurb} onChange={(e) => setFormData({ ...formData, blurb: e.target.value })} placeholder="Brief description of what this paper shows..." style={{ background: '#0f172a', border: '1px solid #334155', minHeight: '100px', borderRadius: '8px', color: 'white', padding: '12px', resize: 'vertical' }} />
                                     </div>
 
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>PDF File (Optional)</label>
-                                        <div
-                                            onClick={() => document.getElementById('file-upload')?.click()}
-                                            style={{
-                                                border: '2px dashed #334155',
-                                                borderRadius: '12px',
-                                                padding: '20px',
-                                                textAlign: 'center',
-                                                cursor: 'pointer',
-                                                background: file ? '#0f172a' : 'transparent',
-                                                transition: 'all 0.2s'
-                                            }}
-                                        >
-                                            <input id="file-upload" type="file" accept="application/pdf" style={{ display: 'none' }} onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                                            {file ? (
-                                                <div style={{ color: '#60a5fa', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                                    <FileText size={20} /> {file.name}
-                                                </div>
-                                            ) : (
-                                                <div style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                                    <Upload size={20} /> Click to choose a PDF
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
                                     <div style={{ marginTop: '16px', display: 'flex', gap: '16px' }}>
-                                        <button type="button" onClick={() => setIsAddingRecord(false)} style={{ flex: 1, padding: '14px', background: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '12px', cursor: 'pointer', fontWeight: 700 }}>Cancel</button>
+                                        <button type="button" onClick={fullReset} style={{ flex: 1, padding: '14px', background: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '12px', cursor: 'pointer', fontWeight: 700 }}>Cancel</button>
                                         <button type="submit" disabled={isSubmitting} style={{ flex: 1, padding: '14px', background: isSubmitting ? '#94a3b8' : '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.3)' }}>
-                                            {isSubmitting ? 'Uploading...' : 'Upload & Save'}
+                                            {isSubmitting ? (isDuplicateMode ? 'Saving...' : 'Uploading...') : 'Save Entry'}
                                         </button>
                                     </div>
                                 </form>
